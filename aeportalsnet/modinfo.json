@@ -1,0 +1,14 @@
+{
+      "type": "code",
+  "modid": "aeportalsnet",
+  "name": "AE Portals Network",
+  "version": "1.1.0",
+  "description": "Teleport portals with network system",
+  "side": "universal",
+  "requiredOnClient": true,
+  "requiredOnServer": true,
+  "authors": ["AeroCooLEX"],
+    "dependencies": {
+        "game": "1.21.0"
+    }
+}

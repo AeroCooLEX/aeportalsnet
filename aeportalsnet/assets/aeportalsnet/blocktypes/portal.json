@@ -1,0 +1,78 @@
+{
+	"code": "portal",
+	"behaviors": [
+		{ "name": "HorizontalOrientable", "properties": { "dropBlockFace": "east" } }
+	],
+	"class": "PortalBlock",
+	"entityClass": "aeportalsnet.BEportal",
+	"blockmaterial": "Metal",
+	"requiredminingtier": 2,
+	"maxstacksize": 4,
+	"replaceable": 1,
+	"lightAbsorption": 0,
+	"lightHsv": [32, 7, 12],
+    "resistance": 4,
+	"variantgroups": [
+		{ "code": "side", "loadFromProperties": "abstract/horizontalorientation" }
+	],
+	"creativeinventory": {
+		"general": [ "*-east" ],
+		"aeportalsnet": [ "*-east" ]
+	},
+	"drawtype": "json",
+	"faceCullMode": "NeverCull",
+	"shape": {
+		"base": "aeportalsnet:block/portal",
+		"rotateYByType": {
+			"*-north": 0,
+			"*-east": 270,
+			"*-south": 180,
+			"*-west": 90
+		}
+	},
+	"textures": {
+		"base_darkwood": { "base": "game:block/machine/statictranslocator/base_darkwood" },
+		"rusty": { "base": "game:block/machine/statictranslocator/rusty" },
+		"statictranslocator_glass": { "base": "game:block/machine/statictranslocator/statictranslocator_glass" },
+		"rustyglow": { "base": "game:block/machine/statictranslocator/rustyglow" },
+		"statictranslocator_gearboxB": { "base": "game:block/machine/statictranslocator/statictranslocator_gearboxB" },
+		"statictranslocator_structure": { "base": "game:block/machine/statictranslocator/statictranslocator_structure" },
+		"statictranslocator_gearboxA": { "base": "game:block/machine/statictranslocator/statictranslocator_gearboxA" },
+		"statictranslocator_pipes": { "base": "game:block/machine/statictranslocator/statictranslocator_pipes" }
+	},
+	"particles": [
+		{
+			"type": "block",
+			"quantity": { "avg": 1, "var": 0 },
+			"particleStats": {
+				"color": { "avg": [1, 1, 0.8] },
+				"colorAffectedByLight": false,
+				"opacity": { "avg": 0.7, "var": 0.3 },
+				"size": { "avg": 0.1, "var": 0.05 },
+				"gravity": { "avg": 0 },
+				"velocity": { 
+					"min": [0, 0.5, 0],
+					"max": [0, 1.0, 0]
+				},
+				"lifeLength": { "avg": 2.0, "var": 1.0 },
+				"quantity": { "avg": 1, "var": 0 },
+				"particleModel": "Cube"
+			}
+		}
+	],
+	"collisionbox": {
+		"x1": 0, "y1": 0, "z1": 0,
+		"x2": 1, "y2": 0.0625, "z2": 1
+	},
+	"selectionbox": {
+		"x1": 0, "y1": 0, "z1": 0,
+		"x2": 1, "y2": 0.0625, "z2": 1
+	},
+	"sideopaque": { "all": false },
+	"sideao": { "all": false },
+	"sidesolid": { "all": false },
+	"sounds": {
+		"place": "block/planks",
+		"walk": "walk/wood"
+	}
+}

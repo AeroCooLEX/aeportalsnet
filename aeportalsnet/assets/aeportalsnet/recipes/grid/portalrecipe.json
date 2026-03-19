@@ -1,0 +1,39 @@
+{
+	"ingredientPattern": "HTC,SNS,SPS",
+	"width": 3,
+	"height": 3,
+    "ingredients": {
+		"H": {
+			"type": "item",
+			"code": "game:hammer-*",
+			"isTool": true,
+            "toolDurabilityCost": 10
+		},
+		"S": {
+			"type": "block",
+			"code": "game:rock-*"
+		},
+        "C": {
+            "type": "item",
+            "code": "game:chisel-*",
+            "isTool": true,
+            "toolDurabilityCost": 10
+        },
+        "N": {
+            "type": "item",
+            "code": "game:metalnailsandstrips-*"
+        },
+        "P" :{
+            "type": "item",
+            "code": "game:metalplate-*"
+        },
+        "T" :{
+            "type": "item",
+            "code": "game:gear-temporal"
+        }
+	},
+    "output": {
+		"type": "block",
+		"code": "portal-east"
+	}
+}

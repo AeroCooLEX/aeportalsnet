@@ -1,0 +1,15 @@
+{
+	//"aeportalsnet:block-portal-*": "Портал",
+	//"aeportalsnet:portal-name-title": "Имя портала",
+   // "aeportalsnet:enter-portal-name": "Введите имя портала:",
+    //"aeportalsnet:ok": "ОК",
+    //"aeportalsnet:cancel": "ОТМЕНА"
+	"aeportalsnet:portal-name-title": "Имя портала",
+    "aeportalsnet:enter-portal-name": "Введите имя портала:",
+    "aeportalsnet:ok": "ОК",
+    "aeportalsnet:cancel": "ОТМЕНА",
+    "aeportalsnet:select-portal": "Выберите портал",
+    "aeportalsnet:your-portal": "Ваши порталы:",
+    "aeportalsnet:teleport": "Телепорт",
+	"block-portal-*": "Портал"
+}
