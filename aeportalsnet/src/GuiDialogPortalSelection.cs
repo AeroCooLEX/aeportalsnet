@@ -16,6 +16,9 @@ namespace aeportalsnet
         private CairoFont selectedFont;
         private bool isOpen = false;
         private long soundListenerId = -1;
+        private ILoadedSound loopingSound;
+        private const float MAX_VOLUME = 0.20f; // 15% от полной громкости (очень тихо)
+        private const float SOUND_RANGE = 8f; // Уменьшаем дальность звука
 
         public override string ToggleKeyCombinationCode => null;
         public override double DrawOrder => 0.2;
@@ -32,20 +35,87 @@ namespace aeportalsnet
             ComposeDialog();
             isOpen = true;
             
-            StartSoundExtension();
+            StartLoopingSound();
         }
 
-        private void StartSoundExtension()
+        private void StartLoopingSound()
         {
-            capi.World.PlaySoundAt(new AssetLocation("game:sounds/block/teleporter"), 0, 0, 0, null, false, 16f);
-            
-            soundListenerId = capi.Event.RegisterCallback((dt) =>
+            try
             {
-                if (isOpen)
+                // Создаём звук с параметрами
+                var soundParams = new SoundParams
                 {
-                    capi.World.PlaySoundAt(new AssetLocation("game:sounds/block/teleporter"), 0, 0, 0, null, false, 16f);
+                    Location = new AssetLocation("aeportalsnet:sounds/teleporterr"),
+                    Volume = 0.5f, // Начинаем с 0.5 громкости
+                    Range = SOUND_RANGE,
+                    ReferenceDistance = 1f,
+                    Position = new Vec3f(0, 0, 0),
+                    RelativePosition = true,
+                    ShouldLoop = true, // Включаем зацикливание
+                    DisposeOnFinish = false,
+                    SoundType = EnumSoundType.Sound
+                };
+                
+                // Загружаем и запускаем звук
+                loopingSound = capi.World.LoadSound(soundParams);
+                
+                if (loopingSound != null)
+                {
+                    // Запускаем звук
+                    loopingSound.Start();
+                    
+                    // Плавно увеличиваем громкость до MAX_VOLUME за 1 секунду
+                    loopingSound.FadeTo(MAX_VOLUME, 3.0f, null);
+                    
+                    // Запускаем таймер для остановки звука через 5 секунд (если не выберут портал)
+                    soundListenerId = capi.Event.RegisterCallback(StopSoundAfterDelay, 5000);
                 }
-            }, 2000);
+                else
+                {
+                    capi.Logger.Error("[aeportalsnet] Failed to load sound: teleporterr.ogg");
+                }
+            }
+            catch (Exception e)
+            {
+                capi.Logger.Error("[aeportalsnet] Error starting sound: " + e.Message);
+            }
+        }
+
+        private void StopSoundAfterDelay(float dt)
+        {
+            // Если диалог всё ещё открыт, продлеваем звук
+            if (isOpen)
+            {
+                // Перезапускаем таймер
+                soundListenerId = capi.Event.RegisterCallback(StopSoundAfterDelay, 5000);
+            }
+        }
+
+        private void StopSound()
+        {
+            try
+            {
+                if (loopingSound != null)
+                {
+                    // Плавно уменьшаем громкость до 0 за 2 секунды и останавливаем
+                    loopingSound.FadeOut(2f, (sound) => 
+                    {
+                        sound.Stop();
+                        sound.Dispose();
+                    });
+                    loopingSound = null;
+                }
+            }
+            catch (Exception e)
+            {
+                capi.Logger.Error("[aeportalsnet] Error stopping sound: " + e.Message);
+            }
+            
+            if (soundListenerId != -1)
+            {
+                capi.Event.UnregisterCallback(soundListenerId);
+                soundListenerId = -1;
+            }
         }
 
         private void ComposeDialog()
@@ -55,8 +125,12 @@ namespace aeportalsnet
             
             ElementBounds dialogBounds = ElementBounds.Fixed(EnumDialogArea.CenterMiddle, 0, 0, width, height);
             
+            // Используем titleBounds для заголовка
+            ElementBounds titleBounds = ElementBounds.Fixed(0, 15, width - 20, 30)
+                .WithAlignment(EnumDialogArea.CenterFixed);
+            
             string pageInfo = totalPages > 1 ? $" (страница {currentPage + 1} из {totalPages})" : "";
-            ElementBounds titleBounds = ElementBounds.Fixed(0, 45, width - 40, 35)
+            ElementBounds subtitleBounds = ElementBounds.Fixed(0, 45, width - 40, 35)
                 .WithAlignment(EnumDialogArea.CenterFixed);
             
             var composer = capi.Gui
@@ -65,7 +139,9 @@ namespace aeportalsnet
                 .AddDialogTitleBar("Выберите портал", OnTitleBarClose)
                 .BeginChildElements();
             
-            composer.AddStaticText($"Ваши порталы:{pageInfo}", CairoFont.WhiteDetailText().WithFontSize(16), titleBounds);
+            // Добавляем заголовки
+            composer.AddStaticText("Выберите портал", CairoFont.WhiteDetailText().WithFontSize(18), titleBounds);
+            composer.AddStaticText($"Ваши порталы:{pageInfo}", CairoFont.WhiteDetailText().WithFontSize(16), subtitleBounds);
             
             int startIndex = currentPage * portalsPerPage;
             int endIndex = Math.Min(startIndex + portalsPerPage, portalNames.Count);
@@ -147,9 +223,12 @@ namespace aeportalsnet
             
             ElementBounds dialogBounds = ElementBounds.Fixed(EnumDialogArea.CenterMiddle, 0, 0, width, height);
             
-            string pageInfo = totalPages > 1 ? $" (страница {currentPage + 1} из {totalPages})" : "";
-            ElementBounds titleBounds = ElementBounds.Fixed(0, 45, width - 40, 35)
+            ElementBounds titleBounds = ElementBounds.Fixed(0, 15, width - 20, 30)
                 .WithAlignment(EnumDialogArea.CenterFixed);
+            ElementBounds subtitleBounds = ElementBounds.Fixed(0, 45, width - 40, 35)
+                .WithAlignment(EnumDialogArea.CenterFixed);
+            
+            string pageInfo = totalPages > 1 ? $" (страница {currentPage + 1} из {totalPages})" : "";
             
             var composer = capi.Gui
                 .CreateCompo("portalselection", dialogBounds)
@@ -157,7 +236,8 @@ namespace aeportalsnet
                 .AddDialogTitleBar("Выберите портал", OnTitleBarClose)
                 .BeginChildElements();
             
-            composer.AddStaticText($"Ваши порталы:{pageInfo}", CairoFont.WhiteDetailText().WithFontSize(16), titleBounds);
+            composer.AddStaticText("Выберите портал", CairoFont.WhiteDetailText().WithFontSize(18), titleBounds);
+            composer.AddStaticText($"Ваши порталы:{pageInfo}", CairoFont.WhiteDetailText().WithFontSize(16), subtitleBounds);
             
             int startIndex = currentPage * portalsPerPage;
             int endIndex = Math.Min(startIndex + portalsPerPage, portalNames.Count);
@@ -208,7 +288,8 @@ namespace aeportalsnet
         {
             if (selectedIndex >= 0 && selectedIndex < portalNames.Count)
             {
-                capi.World.PlaySoundAt(new AssetLocation("game:sounds/block/teleporter"), 0, 0, 0, null, false, 16f);
+                // Останавливаем звук
+                StopSound();
                 
                 PortalTeleportMessage message = new PortalTeleportMessage
                 {
@@ -238,11 +319,8 @@ namespace aeportalsnet
             {
                 isOpen = false;
                 
-                if (soundListenerId != -1)
-                {
-                    capi.Event.UnregisterCallback(soundListenerId);
-                    soundListenerId = -1;
-                }
+                // Останавливаем звук
+                StopSound();
                 
                 PortalDialogClosedMessage message = new PortalDialogClosedMessage();
                 capi.Network.GetChannel("aeportalsnet").SendPacket(message);
@@ -256,11 +334,8 @@ namespace aeportalsnet
             {
                 isOpen = false;
                 
-                if (soundListenerId != -1)
-                {
-                    capi.Event.UnregisterCallback(soundListenerId);
-                    soundListenerId = -1;
-                }
+                // Останавливаем звук
+                StopSound();
                 
                 PortalDialogClosedMessage message = new PortalDialogClosedMessage();
                 capi.Network.GetChannel("aeportalsnet").SendPacket(message);
